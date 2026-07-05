@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+/* 1. Mapeamos as variáveis para o Tailwind criar as classes dinâmicas */
+@theme {
+  --color-app-bg: var(--theme-app-bg);
+  --color-card-bg: var(--theme-card-bg);
+  --color-text-main: var(--theme-text-main);
+  --color-text-muted: var(--theme-text-muted);
+  --color-accent: var(--theme-accent);
+  --color-border-subtle: var(--theme-border-subtle);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 2. TEMA 1: ORIGINAL (Noite de Estudo - O teu tema atual) */
+:root {
+  --theme-app-bg: #020617; /* Fundo geral da app (Slate 950) */
+  --theme-card-bg: #0f172a; /* Fundo dos cartões/widgets (Slate 900) */
+  --theme-text-main: #f1f5f9; /* Texto principal (Slate 100) */
+  --theme-text-muted: #94a3b8; /* Texto secundário (Slate 400) */
+  --theme-accent: #10b981; /* Verde esmeralda dos teus botões */
+  --theme-border-subtle: #1e293b; /* Bordas dos cartões (Slate 800) */
 }
 
+/* 3. TEMA 2: CLARO (Dia de Foco - Um tema luminoso com destaques em azul) */
+[data-theme="light"] {
+  --theme-app-bg: #f8fafc;
+  --theme-card-bg: #ffffff;
+  --theme-text-main: #0f172a;
+  --theme-text-muted: #64748b;
+  --theme-accent: #0ea5e9; /* Azul vibrante para foco diurno */
+  --theme-border-subtle: #e2e8f0;
+}
+
+/* 4. TEMA 3: DRÁCULA (Sessão Noturna - Cinzas profundos com roxo) */
+[data-theme="dracula"] {
+  --theme-app-bg: #18181b;
+  --theme-card-bg: #27272a;
+  --theme-text-main: #fafafa;
+  --theme-text-muted: #a1a1aa;
+  --theme-accent: #a855f7; /* Roxo para um estilo mais "coding" */
+  --theme-border-subtle: #3f3f46;
+}
+
+/* Estilos globais base */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--theme-app-bg);
+  color: var(--theme-text-main);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
