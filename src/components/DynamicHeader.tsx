@@ -15,12 +15,9 @@ interface DynamicHeaderProps {
 
 export default function DynamicHeader({ time, weatherCode, userName, university, course, profileImage }: DynamicHeaderProps) {
   const [greetingText, setGreetingText] = useState('');
-  const [contextText, setContextText] = useState('');
   const [isFinished, setIsFinished] = useState(false);
   
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
-  
-  // A nossa "Memória" para evitar o soluço
   const typingIndex = useRef(0); 
   const prevUserName = useRef(userName);
 
@@ -29,7 +26,6 @@ export default function DynamicHeader({ time, weatherCode, userName, university,
     if (prevUserName.current !== userName) {
        typingIndex.current = 0;
        prevUserName.current = userName;
-       // setTimeout evita o erro do ESLint (react-hooks/set-state-in-effect)
        setTimeout(() => setIsFinished(false), 0);
     }
 
@@ -38,33 +34,20 @@ export default function DynamicHeader({ time, weatherCode, userName, university,
     const hour = new Date().getHours();
     const isNight = hour >= 19 || hour < 6;
     const isMorning = hour >= 6 && hour < 12;
-    const isRainingOrSnowing = weatherCode !== null && weatherCode >= 51;
 
     const cleanName = userName.trim();
 
-    let greeting = "";
-    if (isMorning) greeting = `Bom dia, ${cleanName}.`;
-    else if (isNight) greeting = `Boa noite, ${cleanName}.`;
-    else greeting = `Boa tarde, ${cleanName}.`;
+    let fullString = "";
+    if (isMorning) fullString = `Bom dia, ${cleanName}.`;
+    else if (isNight) fullString = `Boa noite, ${cleanName}.`;
+    else fullString = `Boa tarde, ${cleanName}.`;
 
-    let context = "";
-    if (isRainingOrSnowing && isMorning) context = "Dia chuvoso, agarra num café e vamos focar.";
-    else if (isRainingOrSnowing) context = "O tempo pede calma, perfeito para render nos estudos.";
-    else if (isMorning) context = "Belo dia lá fora, mas primeiro... ao trabalho!";
-    else if (isNight) context = "Silêncio à volta, a melhor hora para fazer acontecer.";
-    else context = "A energia continua lá em cima. Foco total!";
-
-    const fullString = greeting + "|" + context;
-    
-    // Proteção: se a frase mudar mas nós já íamos lá à frente, adapta-se automaticamente
+    // Proteção de tamanho e estado
     if (typingIndex.current >= fullString.length) {
         typingIndex.current = fullString.length;
-        const parts = fullString.split('|');
         
-        // Embrulhamos TUDO num setTimeout para o ESLint não se queixar
         setTimeout(() => {
-            setGreetingText(parts[0]);
-            setContextText(parts[1] || '');
+            setGreetingText(fullString);
             setIsFinished(true);
         }, 0);
         
@@ -73,11 +56,9 @@ export default function DynamicHeader({ time, weatherCode, userName, university,
 
     typingTimer.current = setInterval(() => {
       if (typingIndex.current < fullString.length) {
-        // Avança na string baseada na memória (typingIndex.current) e não começando de zero
+        // Avança na string baseada na memória
         const currentStr = fullString.substring(0, typingIndex.current + 1);
-        const parts = currentStr.split('|');
-        setGreetingText(parts[0]);
-        if (parts.length > 1) setContextText(parts[1] || '');
+        setGreetingText(currentStr);
         typingIndex.current++;
       } else {
         if (typingTimer.current) clearInterval(typingTimer.current);
@@ -138,13 +119,13 @@ export default function DynamicHeader({ time, weatherCode, userName, university,
       </div>
 
       {/* CONTEÚDO DE TEXTO PRINCIPAL (À ESQUERDA) */}
-      <div className="relative z-20 flex flex-col gap-1 w-full max-w-5xl pr-24 sm:pr-48">
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-lg leading-tight min-h-12 sm:min-h-16">
-          {greetingText}{(!isFinished && contextText === '') && <span className="animate-pulse text-emerald-400">|</span>}
+      <div className="relative z-20 flex flex-col gap-1 w-full max-w-5xl pr-28 sm:pr-48">
+        <h1 
+          className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight drop-shadow-lg leading-tight truncate max-w-[200px] sm:max-w-[400px] md:max-w-none"
+          title={greetingText}
+        >
+          {greetingText}{!isFinished && <span className="animate-pulse text-emerald-400">|</span>}
         </h1>
-        <p className="text-emerald-400 font-medium text-sm md:text-lg drop-shadow-md mt-1 leading-snug opacity-90 min-h-6">
-          {contextText}{(!isFinished && contextText !== '') && <span className="animate-pulse text-emerald-400">|</span>}
-        </p>
       </div>
     </header>
   );

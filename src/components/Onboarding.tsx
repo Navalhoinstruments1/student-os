@@ -49,7 +49,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const type1 = useTypewriter(step === 1 ? "Olá! Eu sou o teu novo assistente pessoal." : '', 50);
+  const type1 = useTypewriter(step === 1 ? "Olá! Bem Vindo à OS Student" : '', 50);
   const type2 = useTypewriter(type1.isFinished && step === 1 ? "Como te chamas, onde estudas e qual é o teu curso?" : '', 40);
 
   const type3 = useTypewriter(step === 2 ? `Muito prazer, ${formData.name}.` : '', 50);
@@ -103,7 +103,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             </div>
             <div className={`space-y-3 transition-all duration-1000 ${type2.isFinished ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
               <div className="flex items-center bg-card-bg/80 border border-border-subtle px-4 py-3 rounded-xl focus-within:ring-2 focus-within:ring-emerald-500 shadow-inner transition-colors">
-                 <User className="text-text-muted mr-3 shrink-0 transition-colors" size={20} /><input type="text" autoFocus placeholder="Nome..." className="w-full bg-transparent text-text-main outline-none placeholder:text-text-muted/50" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                 <User className="text-text-muted mr-3 shrink-0 transition-colors" size={20} />
+                 <input 
+                   type="text" 
+                   autoFocus 
+                   placeholder="Nome..." 
+                   maxLength={15} 
+                   className="w-full bg-transparent text-text-main outline-none placeholder:text-text-muted/50" 
+                   value={formData.name} 
+                   onChange={e => setFormData({...formData, name: e.target.value})} 
+                 />
               </div>
               <div className="flex items-center bg-card-bg/80 border border-border-subtle px-4 py-3 rounded-xl focus-within:ring-2 focus-within:ring-emerald-500 shadow-inner transition-colors">
                  <School className="text-text-muted mr-3 shrink-0 transition-colors" size={20} /><input type="text" placeholder="Universidade ou 'Nt'..." className="w-full bg-transparent text-text-main outline-none placeholder:text-text-muted/50" value={formData.university} onChange={e => setFormData({...formData, university: e.target.value})} />

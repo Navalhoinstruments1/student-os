@@ -22,7 +22,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // É esta a magia que desliga o zoom com os dedos
+  themeColor: '#0f172a', // Opcional: pinta a barra de cima do telemóvel com a cor da tua app (ajusta o HEX se quiseres)
 };
 
 export default function RootLayout({

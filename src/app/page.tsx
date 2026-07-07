@@ -13,7 +13,7 @@ import MonthlyGoals from '@/components/MonthlyGoals';
 import WeeklyMeals from '@/components/WeeklyMeals';
 import WeeklyWorkouts from '@/components/WeeklyWorkouts';
 import { Bell, Quote, Sparkles, Plus, Target, ListTodo, GraduationCap, Dumbbell, Coffee, CalendarRange, CloudSun } from 'lucide-react';
-
+import InstallButton from '@/components/InstallButton';
 type NavItem = { id: string; label: string; icon: React.ReactNode };
 
 const baseNavItems: NavItem[] = [
@@ -71,7 +71,7 @@ export default function Dashboard() {
     return false;
   };
 
-  // 1. PRIMEIRO USE EFFECT (Protegido contra novos dispositivos)
+  // 1. PRIMEIRO USE EFFECT (Protegido e em Modo de Fábrica)
   useEffect(() => {
     setTimeout(() => {
       try {
@@ -79,8 +79,25 @@ export default function Dashboard() {
         setTodayStr(today);
         setCurrentTime(new Date());
 
-        setScheduleEvents([{ id: '1', title: 'Álgebra Linear', category: 'Aula', location: 'Anfiteatro 2', dayOfWeek: 1, isRecurring: true, startHour: 9, startMin: 30, endHour: 11, endMin: 0, color: 'bg-blue-600' }]);
-        setTasks([{ id: '101', text: 'Ler capítulo 4 de Sistemas', date: today, completed: false, isRecurring: false }]);
+        // --- MODO DE FÁBRICA: HORÁRIO ---
+        // Lê os dados guardados. Se não houver nada, arranca com o calendário vazio.
+        const storedEvents = localStorage.getItem('studentOs_events');
+        if (storedEvents) {
+            try { setScheduleEvents(JSON.parse(storedEvents)); } 
+            catch (e) { setScheduleEvents([]); }
+        } else {
+            setScheduleEvents([]);
+        }
+
+        // --- MODO DE FÁBRICA: TAREFAS ---
+        // Lê as tarefas guardadas. Se for a primeira vez, arranca sem tarefas.
+        const storedTasks = localStorage.getItem('studentOs_tasks');
+        if (storedTasks) {
+            try { setTasks(JSON.parse(storedTasks)); } 
+            catch (e) { setTasks([]); }
+        } else {
+            setTasks([]);
+        }
 
         const storedNavClicks = localStorage.getItem('smartNavClicks');
         if (storedNavClicks) {
@@ -196,9 +213,14 @@ export default function Dashboard() {
     <div onScroll={handleScroll} className="w-full min-h-full bg-app-bg text-text-main p-4 flex flex-col gap-4 font-sans overflow-y-auto custom-scrollbar relative scroll-smooth transition-colors duration-300">
       <div className="w-full shrink-0 flex flex-col gap-2">
          <DynamicHeader time={currentTime} weatherCode={currentWeatherCode} userName={userName} university={userUniversity} course={userCourse} profileImage={userProfileImage} />
+         
+         {/* O BOTÃO TEM DE ENTRAR AQUI */}
+         <div className="flex justify-end px-2 mt-1">
+            <InstallButton />
+         </div>
       </div>
 
-      <nav className={`md:hidden sticky top-0 z-40 bg-app-bg/95 backdrop-blur-md border-b border-border-subtle py-4 -mx-4 px-4 flex items-center gap-3 overflow-x-auto custom-scrollbar shadow-lg shrink-0 min-h-17.5 transition-transform duration-300 ease-in-out ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
+      <nav className="md:hidden sticky top-0 z-50 bg-app-bg/80 backdrop-blur-xl border-b border-border-subtle py-3 -mx-4 px-4 flex items-center gap-3 overflow-x-auto custom-scrollbar shadow-md shrink-0 transition-colors">
         {sortedNavItems.map(item => (
           <a key={item.id} href={`#${item.id}`} onClick={() => handleNavClick(item.id)} className="shrink-0 bg-card-bg hover:bg-border-subtle text-text-main px-4 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest border border-border-subtle transition-colors flex items-center gap-1.5">
             <span className="text-accent">{item.icon}</span>{item.label}

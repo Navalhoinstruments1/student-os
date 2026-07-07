@@ -48,12 +48,15 @@ export default function WeatherWidget({ onWeatherCodeChange }: WeatherProps) {
   };
 
   useEffect(() => {
-    const savedCity = localStorage.getItem('userCity') || 'Abrantes';
+    const savedCity = localStorage.getItem('userCity');
     setTimeout(() => {
-      fetchWeather(savedCity);
+      if (savedCity) {
+        fetchWeather(savedCity);
+      }
+      // Se não houver 'savedCity', o modo de fábrica entra em ação e não faz nada!
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

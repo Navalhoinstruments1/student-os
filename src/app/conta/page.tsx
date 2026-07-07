@@ -32,7 +32,8 @@ export default function AccountPage() {
   // Modais
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // <-- ADICIONA ESTA LINHA
+
   // Estado Temporário para o Modal de Edição de Perfil
   const [tempData, setTempData] = useState({ name: '', university: '', course: '', age: '', weight: '', height: '' });
   
@@ -186,13 +187,30 @@ export default function AccountPage() {
   };
 
   const handleDeleteAllData = () => {
+    // 1. Avisa o componente do Google Drive para destruir o ficheiro na nuvem
+    window.dispatchEvent(new Event('deleteDriveFile'));
+    
+    // 2. Destrói tudo no telemóvel
     localStorage.clear(); 
+    sessionStorage.clear();
     setShowDeleteModal(false);
-    showStatus('Sistema reposto. A recarregar...', 'success');
+    showStatus('Sistema e Nuvem apagados. A recarregar...', 'success');
     
     setTimeout(() => {
       window.location.href = '/'; 
     }, 1500);
+  };
+
+const handleLogoutClick = () => {
+    // Apenas abre o modal bonito em vez do aviso do navegador
+    setShowLogoutModal(true);
+  };
+
+  const executeLogout = () => {
+    // Limpa APENAS o telemóvel. O Drive fica intacto!
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
   };
 
   const showStatus = (message: string, type: 'success' | 'error') => {
@@ -201,7 +219,7 @@ export default function AccountPage() {
   };
 
   // 1. Enquanto não monta, não mostra NADA que possa causar conflitos
-  if (!isMounted) return <div className="min-h-screen bg-app-bg w-full"></div>;
+  
 
   return (
     <div className="min-h-screen bg-app-bg text-text-main p-4 md:p-8 animate-in fade-in duration-500 pb-24 w-full transition-colors duration-300">
@@ -346,7 +364,10 @@ export default function AccountPage() {
       </div>
 
       <div className="flex justify-center pb-8">
-        <button className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-muted hover:text-rose-400 transition-colors bg-card-bg/50 hover:bg-rose-500/10 px-6 py-3 rounded-xl border border-border-subtle hover:border-rose-500/30">
+        <button 
+          onClick={handleLogoutClick} 
+          className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-muted hover:text-rose-400 transition-colors bg-card-bg/50 hover:bg-rose-500/10 px-6 py-3 rounded-xl border border-border-subtle hover:border-rose-500/30"
+        >
           <LogOut size={16} /> Encerrar Sessão
         </button>
       </div>
@@ -419,7 +440,7 @@ export default function AccountPage() {
         </div>
       )}
 
-      {/* MODAL: RESET */}
+      {/* MODAL: RESET (FORMATAR SISTEMA) */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowDeleteModal(false)}>
           <div className="bg-card-bg border border-rose-500/30 rounded-3xl p-6 md:p-10 w-full max-w-lg shadow-[0_0_60px_rgba(244,63,94,0.15)] animate-in zoom-in-95 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -443,6 +464,42 @@ export default function AccountPage() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
               <button onClick={() => setShowDeleteModal(false)} className="flex-1 order-2 sm:order-1 bg-border-subtle hover:bg-text-muted/20 text-text-main font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 active:translate-y-0.5">Cancelar</button>
               <button onClick={handleDeleteAllData} className="flex-1 order-1 sm:order-2 bg-rose-600 hover:bg-rose-500 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-rose-900/30 hover:shadow-rose-900/40 hover:-translate-y-0.5 active:scale-95 active:translate-y-0">Sim, Apagar Tudo</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NOVO MODAL: ENCERRAR SESSÃO */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowLogoutModal(false)}>
+          <div className="bg-card-bg border border-purple-500/30 rounded-3xl p-6 md:p-10 w-full max-w-lg shadow-[0_0_60px_rgba(168,85,247,0.15)] animate-in zoom-in-95 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500"></div>
+            
+            <button onClick={() => setShowLogoutModal(false)} className="absolute top-5 right-5 text-text-muted hover:text-text-main transition-colors bg-app-bg p-2 rounded-lg border border-border-subtle hover:border-text-muted outline-none">
+              <X size={16} strokeWidth={3} />
+            </button>
+            
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className="relative mb-6">
+                 <div className="absolute -inset-2 bg-purple-500/20 rounded-full blur-[20px] pointer-events-none"></div>
+                 <div className="relative bg-app-bg border border-purple-500/30 p-5 rounded-3xl shadow-inner">
+                    <LogOut size={36} className="text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+                 </div>
+              </div>
+              <h3 className="font-black text-2xl sm:text-3xl text-text-main tracking-tight mb-2">Encerrar Sessão?</h3>
+              <p className="text-text-muted text-sm sm:text-base leading-relaxed max-w-sm">
+                O teu telemóvel ficará limpo para outra pessoa usar, mas os teus dados continuam <strong className="text-purple-400 font-black">a salvo no teu Google Drive</strong>.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
+              <button onClick={() => setShowLogoutModal(false)} className="flex-1 order-2 sm:order-1 bg-border-subtle hover:bg-text-muted/20 text-text-main font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 active:translate-y-0.5">
+                Cancelar
+              </button>
+              <button onClick={executeLogout} className="flex-1 order-1 sm:order-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 hover:shadow-purple-900/40 hover:-translate-y-0.5 active:scale-95 active:translate-y-0">
+                Sim, Encerrar
+              </button>
             </div>
           </div>
         </div>

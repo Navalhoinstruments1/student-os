@@ -48,24 +48,20 @@ export default function FinancasPage() {
         if (saved) {
           setTransactions(JSON.parse(saved));
         } else {
-          const initial: Transaction[] = [
-            { id: '1', title: 'Mesada', amount: 400, type: 'income', category: 'Fixo', date: new Date().toISOString().split('T')[0] }
-          ];
-          setTransactions(initial);
-          localStorage.setItem('studentOs_transactions', JSON.stringify(initial));
+          // MODO DE FÁBRICA: Começa a zeros
+          setTransactions([]);
         }
       } catch (error) {
         console.error("Erro ao ler transações:", error);
-        // Em caso de corrupção de dados (JSON inválido), reinicia a carteira
-        const resetInitial: Transaction[] = [];
-        setTransactions(resetInitial);
+        // Em caso de corrupção de dados, reinicia a carteira
+        setTransactions([]);
       } finally {
         // Aconteça o que acontecer, mostra a UI!
         setIsLoaded(true);
       }
     }, 0);
   }, []);
-
+  
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('studentOs_transactions', JSON.stringify(transactions));
