@@ -19,40 +19,48 @@ export default function WeeklyMeals() {
   const [currentDayName, setCurrentDayName] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      const now = new Date();
-      const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
-      const start = new Date(now);
-      start.setDate(now.getDate() - dayOfWeek + 1);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 6);
+    // 1. Sem setTimeout, executamos tudo de forma imediata e síncrona
+    const now = new Date();
+    const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+    const start = new Date(now);
+    start.setDate(now.getDate() - dayOfWeek + 1);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    
+    const formatDate = (d: Date) => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setWeekDates(`${formatDate(start)} - ${formatDate(end)}`);
+
+    const daysPt = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const todayStr = daysPt[now.getDay()];
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentDayName(todayStr);
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setExpandedDay(todayStr); 
+
+    const saved = localStorage.getItem('studentOs_meals');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const migratedMeals: Record<string, MealPlan> = {};
       
-      const formatDate = (d: Date) => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-      setWeekDates(`${formatDate(start)} - ${formatDate(end)}`);
-
-      const daysPt = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-      const todayStr = daysPt[now.getDay()];
-      setCurrentDayName(todayStr);
-      setExpandedDay(todayStr); 
-
-      const saved = localStorage.getItem('studentOs_meals');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const migratedMeals: Record<string, MealPlan> = {};
-        
-        Object.keys(parsed).forEach(day => {
-          if (typeof parsed[day] === 'string') {
-            migratedMeals[day] = { breakfast: '', lunch: parsed[day], dinner: '' };
-          } else {
-            migratedMeals[day] = parsed[day];
-          }
-        });
-        setMeals(migratedMeals);
-      }
-      setIsLoaded(true);
-    }, 0);
+      Object.keys(parsed).forEach(day => {
+        if (typeof parsed[day] === 'string') {
+          migratedMeals[day] = { breakfast: '', lunch: parsed[day], dinner: '' };
+        } else {
+          migratedMeals[day] = parsed[day];
+        }
+      });
+      
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMeals(migratedMeals);
+    }
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoaded(true);
   }, []);
-
   const handleChange = (day: string, field: keyof MealPlan, value: string) => {
     const newMeals = { ...meals };
     if (!newMeals[day]) {
@@ -63,7 +71,7 @@ export default function WeeklyMeals() {
     localStorage.setItem('studentOs_meals', JSON.stringify(newMeals)); 
   };
 
-  if (!isLoaded) return <div className="animate-pulse bg-card-bg rounded-xl h-64 border border-border-subtle"></div>;
+  if (!isLoaded) return <div className="animate-pulse bg-card-bg rounded-xl h-100 border border-border-subtle"></div>;
 
   return (
     <div className="bg-card-bg p-5 rounded-xl shadow-lg border border-border-subtle flex flex-col h-full min-h-100 transition-colors duration-300">

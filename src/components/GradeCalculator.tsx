@@ -43,33 +43,44 @@ export default function GradeCalculator() {
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
-      const saved = localStorage.getItem('userSemesters');
-      if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            const migratedSemesters = parsed.map((sem: Semester) => ({
-                ...sem,
-                subjects: sem.subjects.map((sub: Subject) => ({
-                    ...sub,
-                    category: sub.category || 'Geral',
-                    targetGrade: sub.targetGrade || 9.5
-                }))
-            }));
-            setSemesters(migratedSemesters);
-            if (migratedSemesters.length > 0) setActiveSemesterId(migratedSemesters[0].id);
-        } catch (e) {
-            console.error("Erro a ler semestres", e);
-        }
-      } else {
-        const initialSem = { id: 'sem-1', name: '1º Semestre', subjects: [] };
-        setSemesters([initialSem]);
-        setActiveSemesterId(initialSem.id);
+    // Leitura imediata e segura
+    const saved = localStorage.getItem('userSemesters');
+    if (saved) {
+      try {
+          const parsed = JSON.parse(saved);
+          const migratedSemesters = parsed.map((sem: Semester) => ({
+              ...sem,
+              subjects: sem.subjects.map((sub: Subject) => ({
+                  ...sub,
+                  category: sub.category || 'Geral',
+                  targetGrade: sub.targetGrade || 9.5
+              }))
+          }));
+          
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSemesters(migratedSemesters);
+          
+          if (migratedSemesters.length > 0) {
+             // eslint-disable-next-line react-hooks/set-state-in-effect
+             setActiveSemesterId(migratedSemesters[0].id);
+          }
+      } catch (e) {
+          console.error("Erro a ler semestres", e);
       }
-      setIsLoaded(true);
-    }, 0);
+    } else {
+      const initialSem = { id: 'sem-1', name: '1º Semestre', subjects: [] };
+      
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSemesters([initialSem]);
+      
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveSemesterId(initialSem.id);
+    }
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoaded(true);
   }, []);
-
+  
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('userSemesters', JSON.stringify(semesters));
@@ -265,10 +276,10 @@ export default function GradeCalculator() {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (currentSemesterAvg / 20) * circumference;
 
-  if (!isLoaded || !activeSemester) return <div className="animate-pulse bg-card-bg rounded-xl h-[600px] border border-border-subtle"></div>;
+  if (!isLoaded || !activeSemester) return <div className="animate-pulse bg-card-bg rounded-xl h-100 border border-border-subtle"></div>;
 
   return (
-    <div className="bg-card-bg p-5 rounded-xl shadow-lg border border-border-subtle flex flex-col h-[600px] relative overflow-hidden transition-colors duration-300">
+    <div className="bg-card-bg p-5 rounded-xl shadow-lg border border-border-subtle flex flex-col h-100 relative overflow-hidden transition-colors duration-300">
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-[50px] pointer-events-none"></div>
 
       <div className="flex items-center justify-between mb-4 relative z-10">

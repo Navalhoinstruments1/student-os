@@ -61,7 +61,7 @@ export default function TasksWidget({ tasks, setTasks }: TasksWidgetProps) {
   const dailyPercentage = totalDaily === 0 ? 0 : Math.round((completedDaily / totalDaily) * 100);
 
   useEffect(() => {
-    localStorage.setItem('userTasks', JSON.stringify(tasks));
+    localStorage.setItem('studentOs_tasks', JSON.stringify(tasks));
     window.dispatchEvent(new Event('syncTasks'));
   }, [tasks]);
 

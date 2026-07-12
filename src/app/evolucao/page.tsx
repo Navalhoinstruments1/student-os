@@ -85,7 +85,7 @@ export default function EvolucaoPage() {
             href={`#${item.id}`} 
             onClick={() => handleNavClick(item.id)}
             // TEMA: bg-slate-800 e border-slate-700 substituídos pelas variáveis do cartão e borda
-            className="flex-1 max-w-[120px] flex items-center justify-center gap-2 bg-card-bg hover:bg-border-subtle text-text-main py-3 px-2 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest border border-border-subtle transition-colors"
+            className="flex-1 max-w-30 flex items-center justify-center gap-2 bg-card-bg hover:bg-border-subtle text-text-main py-3 px-2 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest border border-border-subtle transition-colors"
           >
             <span className="text-accent">{item.icon}</span>
             <span className="truncate">{item.label}</span>

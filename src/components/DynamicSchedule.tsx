@@ -244,7 +244,7 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
       </div>
 
       <div className="flex-1 overflow-auto rounded-lg border border-border-subtle bg-app-bg/50 relative">
-        <div className="min-w-175 flex">
+        <div className="min-w-[700px] flex">
           <div className="w-16 shrink-0 border-r border-border-subtle bg-card-bg/90 sticky left-0 z-20">
             <div className="h-10 border-b border-border-subtle"></div> 
             {hoursRange.map(hour => (
@@ -417,13 +417,13 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
             <div className="flex justify-center items-center gap-6 p-6 bg-app-bg/20">
               <div className="flex flex-col h-40 w-16 overflow-y-auto custom-scrollbar snap-y snap-mandatory border-y border-border-subtle/50 bg-app-bg rounded-lg shadow-inner">
                 {HOURS.map(h => (
-                  <button key={h} type="button" onClick={() => setPickerConfig({...pickerConfig, hour: h})} className={`h-12 shrink-0 snap-center text-lg font-black transition-all flex items-center justify-center ${pickerConfig.hour === h ? 'text-accent bg-accent/10 border-y border-accent/20 scale-110' : 'text-text-muted hover:text-text-main'}`}>{h}</button>
+                  <button key={h} type="button" onClick={() => setPickerConfig(prev => prev ? {...prev, hour: h} : null)} className={`h-12 shrink-0 snap-center text-lg font-black transition-all flex items-center justify-center ${pickerConfig.hour === h ? 'text-accent bg-accent/10 border-y border-accent/20 scale-110' : 'text-text-muted hover:text-text-main'}`}>{h}</button>
                 ))}
               </div>
               <span className="text-3xl font-black text-text-muted pb-1">:</span>
               <div className="flex flex-col h-40 w-16 overflow-y-auto custom-scrollbar snap-y snap-mandatory border-y border-border-subtle/50 bg-app-bg rounded-lg shadow-inner">
                 {MINUTES.map(m => (
-                  <button key={m} type="button" onClick={() => setPickerConfig({...pickerConfig, minute: m})} className={`h-12 shrink-0 snap-center text-lg font-black transition-all flex items-center justify-center ${pickerConfig.minute === m ? 'text-accent bg-accent/10 border-y border-accent/20 scale-110' : 'text-text-muted hover:text-text-main'}`}>{m}</button>
+                  <button key={m} type="button" onClick={() => setPickerConfig(prev => prev ? {...prev, minute: m} : null)} className={`h-12 shrink-0 snap-center text-lg font-black transition-all flex items-center justify-center ${pickerConfig.minute === m ? 'text-accent bg-accent/10 border-y border-accent/20 scale-110' : 'text-text-muted hover:text-text-main'}`}>{m}</button>
                 ))}
               </div>
             </div>
@@ -437,7 +437,7 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
 
       {showDatePicker && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowDatePicker(false)}>
-          <div className="bg-card-bg border border-border-subtle rounded-2xl w-full max-w-[280px] shadow-[0_0_40px_rgba(59,130,246,0.15)] overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+          <div className="bg-card-bg border border-border-subtle rounded-2xl w-full max-w-70 shadow-[0_0_40px_rgba(59,130,246,0.15)] overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-border-subtle bg-app-bg/50">
               <button type="button" onClick={() => setPickerMonth(new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1, 1))} className="p-1.5 text-text-muted hover:text-text-main hover:bg-border-subtle rounded-md transition-colors"><ChevronLeft size={18} /></button>
               <span className="font-bold text-text-main capitalize">{pickerMonth.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })}</span>

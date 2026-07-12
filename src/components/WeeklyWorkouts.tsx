@@ -59,36 +59,36 @@ export default function WeeklyWorkouts() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      const saved = localStorage.getItem('studentOs_workouts');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          const migratedData: Record<string, WorkoutDay> = {};
-          Object.keys(parsed).forEach(day => {
-            const dayData = parsed[day];
-            migratedData[day] = { 
-                ...dayData, 
-                endTime: dayData.endTime || '', 
-                completed: dayData.completed || false,
-                completedAt: dayData.completedAt || undefined,
-                exercises: (dayData.exercises || []).map((ex: Exercise) => ({
-                    ...ex,
-                    category: ex.category || 'Outro',
-                    series: ex.series || '',
-                    reps: ex.reps || '',
-                    weight: ex.weight || ''
-                }))
-            };
-          });
-          setWorkouts(migratedData);
-        } catch (e) { console.error("Erro na migração", e); }
-      }
-      setIsLoaded(true);
-      window.dispatchEvent(new Event('syncGymWorkouts'));
-    }, 0);
+    // Retirámos o setTimeout para ler imediatamente!
+    const saved = localStorage.getItem('studentOs_workouts');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const migratedData: Record<string, WorkoutDay> = {};
+        Object.keys(parsed).forEach(day => {
+          const dayData = parsed[day];
+          migratedData[day] = { 
+              ...dayData, 
+              endTime: dayData.endTime || '', 
+              completed: dayData.completed || false,
+              completedAt: dayData.completedAt || undefined,
+              exercises: (dayData.exercises || []).map((ex: Exercise) => ({
+                  ...ex,
+                  category: ex.category || 'Outro',
+                  series: ex.series || '',
+                  reps: ex.reps || '',
+                  weight: ex.weight || ''
+              }))
+          };
+        });
+        setWorkouts(migratedData);
+      } catch (e) { console.error("Erro na migração", e); }
+    }
+    
+    // Agora é seguro dizer que carregou
+    setIsLoaded(true);
+    window.dispatchEvent(new Event('syncGymWorkouts'));
   }, []);
-
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('studentOs_workouts', JSON.stringify(workouts));

@@ -376,7 +376,7 @@ const handleLogoutClick = () => {
       {showProfileModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowProfileModal(false)}>
           <div className="bg-card-bg border border-purple-500/30 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-[0_0_60px_rgba(168,85,247,0.15)] animate-in zoom-in-95 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-purple-500 to-pink-500"></div>
             
             <button onClick={() => setShowProfileModal(false)} className="absolute top-5 right-5 text-text-muted hover:text-text-main transition-colors bg-app-bg p-2 rounded-lg border border-border-subtle hover:border-text-muted outline-none">
               <X size={16} strokeWidth={3} />
@@ -391,7 +391,7 @@ const handleLogoutClick = () => {
                     <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1 mb-1 block">O teu Nome</label>
                     <div className="flex items-center bg-app-bg border border-border-subtle px-4 py-3 rounded-xl focus-within:border-accent transition-colors shadow-inner">
                         <User className="text-text-muted mr-3 shrink-0" size={18} />
-                        <input type="text" required className="w-full bg-transparent text-text-main font-bold outline-none" value={tempData.name} onChange={e => setTempData({...tempData, name: e.target.value})} />
+                       <input type="text" required maxLength={15} className="w-full bg-transparent text-text-main font-bold outline-none" value={tempData.name} onChange={e => setTempData({...tempData, name: e.target.value})} />
                     </div>
                   </div>
 
@@ -431,7 +431,7 @@ const handleLogoutClick = () => {
                 <button type="button" onClick={() => setShowProfileModal(false)} className="flex-1 order-2 sm:order-1 bg-border-subtle hover:bg-text-muted/20 text-text-main font-bold py-4 rounded-xl transition-all shadow-md active:scale-95">
                   Cancelar
                 </button>
-                <button type="submit" disabled={!tempData.name} className="flex-1 order-1 sm:order-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 active:scale-95">
+                <button type="submit" disabled={!tempData.name} className="flex-1 order-1 sm:order-2 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 active:scale-95">
                   Guardar Alterações
                 </button>
               </div>
@@ -445,7 +445,7 @@ const handleLogoutClick = () => {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowDeleteModal(false)}>
           <div className="bg-card-bg border border-rose-500/30 rounded-3xl p-6 md:p-10 w-full max-w-lg shadow-[0_0_60px_rgba(244,63,94,0.15)] animate-in zoom-in-95 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 right-0 w-40 h-40 bg-rose-500/5 rounded-full blur-[60px] pointer-events-none"></div>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-600 via-rose-500 to-rose-600"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-rose-600 via-rose-500 to-rose-600"></div>
             <button onClick={() => setShowDeleteModal(false)} className="absolute top-5 right-5 text-text-muted hover:text-text-main transition-colors bg-app-bg p-2 rounded-lg border border-border-subtle hover:border-text-muted outline-none">
               <X size={16} strokeWidth={3} />
             </button>
@@ -474,7 +474,7 @@ const handleLogoutClick = () => {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowLogoutModal(false)}>
           <div className="bg-card-bg border border-purple-500/30 rounded-3xl p-6 md:p-10 w-full max-w-lg shadow-[0_0_60px_rgba(168,85,247,0.15)] animate-in zoom-in-95 duration-200 relative overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none"></div>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-purple-600 via-purple-500 to-blue-500"></div>
             
             <button onClick={() => setShowLogoutModal(false)} className="absolute top-5 right-5 text-text-muted hover:text-text-main transition-colors bg-app-bg p-2 rounded-lg border border-border-subtle hover:border-text-muted outline-none">
               <X size={16} strokeWidth={3} />
@@ -497,7 +497,7 @@ const handleLogoutClick = () => {
               <button onClick={() => setShowLogoutModal(false)} className="flex-1 order-2 sm:order-1 bg-border-subtle hover:bg-text-muted/20 text-text-main font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 active:translate-y-0.5">
                 Cancelar
               </button>
-              <button onClick={executeLogout} className="flex-1 order-1 sm:order-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 hover:shadow-purple-900/40 hover:-translate-y-0.5 active:scale-95 active:translate-y-0">
+              <button onClick={executeLogout} className="flex-1 order-1 sm:order-2 bg-linear-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 hover:shadow-purple-900/40 hover:-translate-y-0.5 active:scale-95 active:translate-y-0">
                 Sim, Encerrar
               </button>
             </div>

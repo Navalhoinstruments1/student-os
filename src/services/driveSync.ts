@@ -126,7 +126,33 @@ class DriveSyncService {
     const fileRes = await this.fetchGoogle(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
     return await fileRes.json();
   }
+// 5. APAGAR DADOS DA NUVEM (FORMATAR SISTEMA)
+  async deleteDriveFile(): Promise<void> {
+    try {
+      // 1. Encontra a pasta principal
+      const folderId = await this.getOrCreateFolder(FOLDER_NAME);
+      
+      // 2. Procura o ficheiro mestre lá dentro
+      const query = `name='${FILE_NAME}' and '${folderId}' in parents and trashed=false`;
+      const searchRes = await this.fetchGoogle(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`);
+      const searchData = await searchRes.json();
 
+      // 3. Se ele existir, envia o comando de destruição
+      if (searchData.files && searchData.files.length > 0) {
+        const fileId = searchData.files[0].id;
+        
+        await this.fetchGoogle(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+          method: 'DELETE'
+        });
+        console.log("[DriveSync] Ficheiro mestre apagado com sucesso da nuvem.");
+      } else {
+        console.log("[DriveSync] Nenhum ficheiro encontrado no Drive para apagar.");
+      }
+    } catch (error) {
+      console.error("[DriveSync] Erro crítico ao apagar ficheiro no Drive:", error);
+      throw error;
+    }
+  }
   // 4. ARQUIVO SEMESTRAL E LIMPEZA
   // Usamos um Generic <T> para dizer ao TypeScript "pode ser qualquer tipo de dados estruturado"
   async archiveSemester<T>(semesterName: string, dataToArchive: T): Promise<void> {

@@ -61,7 +61,7 @@ export default function FinancasPage() {
       }
     }, 0);
   }, []);
-  
+
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('studentOs_transactions', JSON.stringify(transactions));
@@ -154,7 +154,7 @@ export default function FinancasPage() {
   if (!isLoaded) return <div className="min-h-screen bg-app-bg"></div>;
 
   return (
-    <div className="w-full min-h-full bg-app-bg text-text-main p-4 md:p-8 w-full transition-colors duration-300">
+    <div className="w-full min-h-full bg-app-bg text-text-main p-4 md:p-8 transition-colors duration-300">
       
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

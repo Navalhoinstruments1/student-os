@@ -17,15 +17,18 @@ export default function MonthlyGoals() {
   const [newTarget, setNewTarget] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      const saved = localStorage.getItem('studentOs_monthlyGoals');
-      if (saved) {
-        setGoals(JSON.parse(saved));
-      } else {
-        setGoals([{ id: '1', title: 'Ler Livros', current: 1, target: 4 }]);
-      }
-      setIsLoaded(true);
-    }, 0);
+    // Leitura imediata e segura
+    const saved = localStorage.getItem('studentOs_monthlyGoals');
+    if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGoals(JSON.parse(saved));
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGoals([{ id: '1', title: 'Ler Livros', current: 1, target: 4 }]);
+    }
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -55,7 +58,7 @@ export default function MonthlyGoals() {
 
   const deleteGoal = (id: string) => setGoals(goals.filter(g => g.id !== id));
 
-  if (!isLoaded) return <div className="animate-pulse bg-card-bg rounded-xl h-64"></div>;
+  if (!isLoaded) return <div className="animate-pulse bg-card-bg rounded-xl h-100"></div>;
 
   return (
     <div className="bg-card-bg p-5 rounded-xl shadow-lg border border-border-subtle flex flex-col h-full max-h-[400px] transition-colors duration-300">

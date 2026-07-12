@@ -45,8 +45,6 @@ export default function Dashboard() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [customQuotes, setCustomQuotes] = useState<string[]>([]);
   
-  const [showNav, setShowNav] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [navClicks, setNavClicks] = useState<Record<string, number>>({});
 
   const [isAddingQuote, setIsAddingQuote] = useState(false);
@@ -135,20 +133,93 @@ export default function Dashboard() {
     return () => { clearInterval(timer); clearInterval(quoteTimer); };
   }, []);
 
+  // Guarda o horário automaticamente sempre que adicionas, editas ou apagas algo!
+  useEffect(() => {
+    // O isLoaded garante que não apagamos os dados antes de a app arrancar
+    if (isLoaded) {
+      localStorage.setItem('studentOs_events', JSON.stringify(scheduleEvents));
+    }
+  }, [scheduleEvents, isLoaded]);
+
   // 2. SEGUNDO USE EFFECT (Mantém-se igual)
   useEffect(() => {
     const handleSync = () => loadUserData();
     window.addEventListener('userProfileSync', handleSync);
     return () => window.removeEventListener('userProfileSync', handleSync);
   }, []);
+// 3. MOTOR DE NOTIFICAÇÕES NATIVAS (Web Notifications API)
+  useEffect(() => {
+    // 1. Não corre até os dados estarem todos carregados
+    if (!isLoaded) return;
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentScrollY = e.currentTarget.scrollTop;
-    if (currentScrollY > lastScrollY && currentScrollY > 60) setShowNav(false);
-    else setShowNav(true);
-    setLastScrollY(currentScrollY);
-  };
+    // 2. Pede permissão ao telemóvel/browser se ainda não tiver
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
 
+    const checkAndSendNotifications = () => {
+      // Se não houver permissão, aborta
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      // Lê as regras que o utilizador definiu na página "A Minha Conta"
+      const prefsStr = localStorage.getItem('studentOs_notifs');
+      const notifsPrefs = prefsStr ? JSON.parse(prefsStr) : { all: true, gym: true, nonFixed: true, important: true };
+      
+      // Se a pessoa desligou TUDO no botão mestre, aborta
+      if (!notifsPrefs.all) return;
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Lê o que já avisámos hoje (para não spamar a pessoa sempre que abre a app)
+      const sentNotifs = JSON.parse(sessionStorage.getItem('studentOs_sentNotifs') || '[]');
+
+      // ==========================================
+      // A) AVISOS IMPORTANTES (Testes / Exames / Entregas)
+      // ==========================================
+      if (notifsPrefs.important) {
+         const importantEvents = scheduleEvents.filter(e => e.date === today && (e.category === 'Teste/Exame' || e.category === 'Entr. Trabalho/ Apre.Oral'));
+         importantEvents.forEach(event => {
+            if (!sentNotifs.includes(event.id)) {
+               new Notification('🚨 Hoje é Dia de Decisão!', {
+                  body: `Tens ${event.title}. Prepara-te e boa sorte!`,
+                  icon: '/icon512_rounded.png'
+               });
+               sentNotifs.push(event.id);
+            }
+         });
+      }
+
+      // ==========================================
+      // B) AVISOS NÃO FIXOS (Aulas Extra / Reuniões)
+      // ==========================================
+      if (notifsPrefs.nonFixed) {
+         // Corrigido: Agora procura por eventos que sejam 'Estudo' OU 'Aula'
+         const nonFixedEvents = scheduleEvents.filter(e => e.date === today && (e.category === 'Estudo' || e.category === 'Aula'));
+         nonFixedEvents.forEach(event => {
+            if (!sentNotifs.includes(event.id)) {
+               // Corrigido: Usa o startHour e startMin reais com formatação (ex: 09:30)
+               const formatMin = event.startMin.toString().padStart(2, '0');
+               new Notification('📚 Aula ou Estudo Hoje!', {
+                  body: `Não te esqueças: ${event.title} às ${event.startHour}:${formatMin}`,
+                  icon: '/icon512_rounded.png'
+               });
+               sentNotifs.push(event.id);
+            }
+         });
+      }
+
+      // Guarda os IDs que já dispararam para não voltar a avisar hoje
+      sessionStorage.setItem('studentOs_sentNotifs', JSON.stringify(sentNotifs));
+    };
+
+    // Dispara a verificação 5 segundos após a pessoa abrir a aplicação
+    const initialTimeout = setTimeout(checkAndSendNotifications, 5000);
+    
+    // E depois volta a verificar a cada 1 hora (se a pessoa deixar a app aberta em background)
+    const hourlyInterval = setInterval(checkAndSendNotifications, 3600000);
+
+    return () => { clearTimeout(initialTimeout); clearInterval(hourlyInterval); };
+  }, [isLoaded, scheduleEvents]);
   const handleNavClick = (id: string) => {
     const newClicks = { ...navClicks, [id]: (navClicks[id] || 0) + 1 };
     setNavClicks(newClicks);
@@ -210,7 +281,7 @@ export default function Dashboard() {
   const upcomingAlerts = scheduleEvents.filter(e => e.category === 'Teste/Exame' || e.category === 'Entr. Trabalho/ Apre.Oral');
 
   return (
-    <div onScroll={handleScroll} className="w-full min-h-full bg-app-bg text-text-main p-4 flex flex-col gap-4 font-sans overflow-y-auto custom-scrollbar relative scroll-smooth transition-colors duration-300">
+    <div className="w-full min-h-full bg-app-bg text-text-main p-4 flex flex-col gap-4 font-sans relative scroll-smooth transition-colors duration-300">
       <div className="w-full shrink-0 flex flex-col gap-2">
          <DynamicHeader time={currentTime} weatherCode={currentWeatherCode} userName={userName} university={userUniversity} course={userCourse} profileImage={userProfileImage} />
          
@@ -220,7 +291,8 @@ export default function Dashboard() {
          </div>
       </div>
 
-      <nav className="md:hidden sticky top-0 z-50 bg-app-bg/80 backdrop-blur-xl border-b border-border-subtle py-3 -mx-4 px-4 flex items-center gap-3 overflow-x-auto custom-scrollbar shadow-md shrink-0 transition-colors">
+      {/* BARRA DE NAVEGAÇÃO STICKY (Nativa, imune a falhas de mobile) */}
+      <nav className="md:hidden sticky top-0 z-50 bg-app-bg/95 backdrop-blur-xl border-b border-border-subtle py-3 -mx-4 px-4 flex items-center gap-3 overflow-x-auto custom-scrollbar shadow-md shrink-0 transition-colors">
         {sortedNavItems.map(item => (
           <a key={item.id} href={`#${item.id}`} onClick={() => handleNavClick(item.id)} className="shrink-0 bg-card-bg hover:bg-border-subtle text-text-main px-4 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest border border-border-subtle transition-colors flex items-center gap-1.5">
             <span className="text-accent">{item.icon}</span>{item.label}
