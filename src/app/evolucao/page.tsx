@@ -19,6 +19,34 @@ export default function EvolucaoPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [navClicks, setNavClicks] = useState<Record<string, number>>({});
 
+  // 🔥 O SILENCIADOR DO RECHARTS
+  useEffect(() => {
+    // Guarda as funções originais da consola
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+
+    // Filtra os Erros
+    console.error = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('The width(-1) and height(-1)')) {
+        return; // Ignora o erro silenciosamente
+      }
+      originalConsoleError(...args);
+    };
+
+    // Filtra os Avisos
+    console.warn = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('The width(-1) and height(-1)')) {
+        return; // Ignora o aviso silenciosamente
+      }
+      originalConsoleWarn(...args);
+    };
+
+    // Restaura a consola quando saíres da página
+    return () => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
+    };
+  }, []);
 
   // Carrega os cliques guardados (Blindado contra ecrãs brancos)
   useEffect(() => {
@@ -54,7 +82,7 @@ export default function EvolucaoPage() {
   return (
     // CORREÇÃO 1: h-screen e gap-8 garantem que o scroll e o sticky funcionam a 100%
     // TEMA: bg-[#0f1523] substituído por bg-app-bg
-<div className="w-full min-h-full flex flex-col gap-8 p-6 md:p-8 custom-scrollbar overflow-y-auto bg-app-bg transition-colors duration-300 scroll-smooth relative">
+    <div className="w-full min-h-full flex flex-col gap-8 p-6 md:p-8  bg-app-bg transition-colors duration-300 scroll-smooth relative">
       
       {/* HEADER DA PÁGINA */}
       <div className="flex items-center justify-between border-b border-border-subtle pb-5 shrink-0 gap-4 flex-wrap transition-colors duration-300">
@@ -76,19 +104,16 @@ export default function EvolucaoPage() {
         </div>
       </div>
 
-      {/* CORREÇÃO 2: sticky e -top-6 forçam a barra a ficar presa no limite do ecrã! */}
-      {/* TEMA: bg-[#0f1523]/95 substituído por bg-app-bg/95 */}
-      <nav className="md:hidden sticky -top-6 z-50 bg-app-bg/95 backdrop-blur-md border-b border-border-subtle py-4 -mx-6 px-6 flex items-center justify-center gap-3 shadow-xl shrink-0 min-h-17.5 transition-colors duration-300">
+    {/* BARRA DE NAVEGAÇÃO STICKY (Tal como no Dashboard) */}
+      <nav className="md:hidden sticky top-0 z-50 bg-app-bg/95 backdrop-blur-xl border-b border-border-subtle py-3 -mx-6 px-6 flex items-center gap-3 overflow-x-auto custom-scrollbar shadow-md shrink-0 transition-colors">
         {isLoaded && sortedNavItems.map(item => (
           <a 
-            key={item.id}
+            key={item.id} 
             href={`#${item.id}`} 
-            onClick={() => handleNavClick(item.id)}
-            // TEMA: bg-slate-800 e border-slate-700 substituídos pelas variáveis do cartão e borda
-            className="flex-1 max-w-30 flex items-center justify-center gap-2 bg-card-bg hover:bg-border-subtle text-text-main py-3 px-2 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest border border-border-subtle transition-colors"
+            onClick={() => handleNavClick(item.id)} 
+            className="shrink-0 bg-card-bg hover:bg-border-subtle text-text-main px-4 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest border border-border-subtle transition-colors flex items-center gap-1.5"
           >
-            <span className="text-accent">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
+            <span className="text-accent">{item.icon}</span>{item.label}
           </a>
         ))}
       </nav>

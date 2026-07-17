@@ -242,7 +242,7 @@ export default function TasksEvolution() {
             <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
               <div className="flex items-center bg-app-bg rounded-lg border border-border-subtle p-1 shadow-inner">
                 <button onClick={handlePrev} className="p-1 px-2 text-text-muted hover:text-text-main transition-colors"><ChevronLeft size={14}/></button>
-                <span className="text-xs font-bold text-accent min-w-[110px] text-center tracking-wider">{dateRangeLabel}</span>
+                <span className="text-xs font-bold text-accent min-w-27.5 text-center tracking-wider">{dateRangeLabel}</span>
                 <button onClick={handleNext} className="p-1 px-2 text-text-muted hover:text-text-main transition-colors"><ChevronRight size={14}/></button>
               </div>
 
@@ -254,8 +254,8 @@ export default function TasksEvolution() {
             </div>
           </div>
 
-          <div className="h-100 w-full relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-100 min-h-100 w-full relative">
+            <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
               <ComposedChart data={periodData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.3} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} dy={10} />
@@ -298,8 +298,8 @@ export default function TasksEvolution() {
               <Target size={14} className="text-accent" /> Sucesso do Período
             </h3>
             
-            <div className="h-48 w-full mt-6 relative">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-56 min-h-56 w-full mt-6 relative flex-1">
+              <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie
                     data={pieData}

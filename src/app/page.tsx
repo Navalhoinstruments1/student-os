@@ -14,6 +14,7 @@ import WeeklyMeals from '@/components/WeeklyMeals';
 import WeeklyWorkouts from '@/components/WeeklyWorkouts';
 import { Bell, Quote, Sparkles, Plus, Target, ListTodo, GraduationCap, Dumbbell, Coffee, CalendarRange, CloudSun } from 'lucide-react';
 import InstallButton from '@/components/InstallButton';
+
 type NavItem = { id: string; label: string; icon: React.ReactNode };
 
 const baseNavItems: NavItem[] = [
@@ -147,7 +148,8 @@ export default function Dashboard() {
     window.addEventListener('userProfileSync', handleSync);
     return () => window.removeEventListener('userProfileSync', handleSync);
   }, []);
-// 3. MOTOR DE NOTIFICAÇÕES NATIVAS (Web Notifications API)
+
+  // 3. MOTOR DE NOTIFICAÇÕES NATIVAS (Web Notifications API)
   useEffect(() => {
     // 1. Não corre até os dados estarem todos carregados
     if (!isLoaded) return;
@@ -173,6 +175,18 @@ export default function Dashboard() {
       // Lê o que já avisámos hoje (para não spamar a pessoa sempre que abre a app)
       const sentNotifs = JSON.parse(sessionStorage.getItem('studentOs_sentNotifs') || '[]');
 
+      // 🔥 FUNÇÃO AUXILIAR: Garante que a notificação funciona em Computador, Tablet e Telemóvel
+      const sendSafeNotification = (title: string, options: NotificationOptions) => {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(title, options);
+          });
+        } else {
+          // Fallback para browsers antigos ou ambientes sem Service Worker
+          new Notification(title, options);
+        }
+      };
+
       // ==========================================
       // A) AVISOS IMPORTANTES (Testes / Exames / Entregas)
       // ==========================================
@@ -180,9 +194,9 @@ export default function Dashboard() {
          const importantEvents = scheduleEvents.filter(e => e.date === today && (e.category === 'Teste/Exame' || e.category === 'Entr. Trabalho/ Apre.Oral'));
          importantEvents.forEach(event => {
             if (!sentNotifs.includes(event.id)) {
-               new Notification('🚨 Hoje é Dia de Decisão!', {
+               sendSafeNotification('🚨 Hoje é Dia de Decisão!', {
                   body: `Tens ${event.title}. Prepara-te e boa sorte!`,
-                  icon: '/icon512_rounded.png'
+                  icon: '/icon-192x192.png'
                });
                sentNotifs.push(event.id);
             }
@@ -193,15 +207,13 @@ export default function Dashboard() {
       // B) AVISOS NÃO FIXOS (Aulas Extra / Reuniões)
       // ==========================================
       if (notifsPrefs.nonFixed) {
-         // Corrigido: Agora procura por eventos que sejam 'Estudo' OU 'Aula'
          const nonFixedEvents = scheduleEvents.filter(e => e.date === today && (e.category === 'Estudo' || e.category === 'Aula'));
          nonFixedEvents.forEach(event => {
             if (!sentNotifs.includes(event.id)) {
-               // Corrigido: Usa o startHour e startMin reais com formatação (ex: 09:30)
                const formatMin = event.startMin.toString().padStart(2, '0');
-               new Notification('📚 Aula ou Estudo Hoje!', {
+               sendSafeNotification('📚 Aula ou Estudo Hoje!', {
                   body: `Não te esqueças: ${event.title} às ${event.startHour}:${formatMin}`,
-                  icon: '/icon512_rounded.png'
+                  icon: '/icon-192x192.png'
                });
                sentNotifs.push(event.id);
             }
@@ -220,6 +232,8 @@ export default function Dashboard() {
 
     return () => { clearTimeout(initialTimeout); clearInterval(hourlyInterval); };
   }, [isLoaded, scheduleEvents]);
+
+  // 🔥 A FUNÇÃO DE NAVEGAÇÃO LIBERTADA E DE VOLTA AO SEU LUGAR
   const handleNavClick = (id: string) => {
     const newClicks = { ...navClicks, [id]: (navClicks[id] || 0) + 1 };
     setNavClicks(newClicks);
@@ -263,8 +277,9 @@ export default function Dashboard() {
   }
 
   if (showSplash && userName) {
+      // 🔥 O CSS DO SPLASH SCREEN AGORA SÓ TEM UMA DURAÇÃO
       return (
-        <div className="fixed inset-0 z-300 bg-app-bg flex flex-col items-center justify-center animate-out fade-out duration-1000 delay-500 fill-mode-forwards transition-colors duration-300">
+        <div className="fixed inset-0 z-300 bg-app-bg flex flex-col items-center justify-center animate-out fade-out duration-1000 delay-500 fill-mode-forwards transition-colors">
              <div className="flex items-center justify-center w-24 h-24 bg-card-bg rounded-3xl border border-border-subtle shadow-[0_0_50px_var(--color-accent)] mb-6 animate-pulse opacity-50">
                 <Sparkles className="text-accent" size={40} />
              </div>

@@ -146,7 +146,7 @@ export default function UniEvolution() {
     return null;
   };
 
-  if (!isLoaded) return <div className="h-100 bg-card-bg rounded-2xl border border-border-subtle animate-pulse"></div>;
+  if (!isLoaded) return <div className="h-100 min-h-100 w-full bg-card-bg rounded-2xl border border-border-subtle animate-pulse"></div>;
 
   return (
     <div className="bg-card-bg border border-border-subtle rounded-2xl p-6 flex flex-col gap-6 w-full transition-colors duration-300">
@@ -167,8 +167,8 @@ export default function UniEvolution() {
         <div className="lg:col-span-2 bg-app-bg/50 border border-border-subtle/30 rounded-xl p-4 flex flex-col transition-colors">
           <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">Média por Semestre</h3>
           {lineChartData.length > 0 ? (
-            <div className="h-100 w-full relative">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-100 min-h-100 w-full relative">
+              <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" vertical={false} opacity={0.5} />
                   <XAxis dataKey="name" stroke="var(--color-text-muted)" fontSize={10} tickLine={false} axisLine={false} dy={10} />
@@ -205,13 +205,13 @@ export default function UniEvolution() {
             </div>
           </div>
 
-          <div className="bg-app-bg/50 border border-border-subtle/30 rounded-xl p-4 flex-1 flex flex-col min-h-[250px] transition-colors">
+          <div className="bg-app-bg/50 border border-border-subtle/30 rounded-xl p-4 flex-1 flex flex-col min-h-62.5 transition-colors">
             <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 flex items-center gap-1.5">
               <Award size={14} className="text-accent transition-colors" /> Domínio por Área
             </h3>
             {radarChartData.length > 2 ? (
-              <div className="flex-1 w-full relative">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="flex-1 w-full min-h-55 relative">
+                <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
                   <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarChartData}>
                     <PolarGrid stroke="var(--color-border-subtle)" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--color-text-muted)', fontSize: 9, fontWeight: 'bold' }} />

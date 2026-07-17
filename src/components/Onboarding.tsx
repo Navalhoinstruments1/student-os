@@ -121,6 +121,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       
       if (SYSTEM_ACCOUNTS[formattedId] === formattedPass) {
         setLoginError('');
+        localStorage.setItem('studentOs_systemId', formattedId); 
         setStep(2); // Avança para obrigar o Login Google
       } else {
         setLoginError('Credenciais inválidas. Verifica o teu ID e senha.');
@@ -145,12 +146,67 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       // @ts-expect-error - Inicialização do cliente OAuth do Google
       const client = window.google.accounts.oauth2.initTokenClient({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-        scope: 'https://www.googleapis.com/auth/drive.appdata',
-        callback: (response: { access_token?: string; error?: string }) => {
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: async (response: { access_token?: string; error?: string }) => {
           if (response.access_token) {
+            
+            // 1. Guarda a chave de acesso no motor
             driveSync.setToken(response.access_token);
-            setIsGoogleLoading(false);
-            setStep(3); // Sucesso! Vai preencher os dados
+            
+            try {
+              // 2. BATE À PORTA DO DRIVE: "Esta pessoa já tem dados?"
+              const existingData = await driveSync.fetchFromDrive();
+              
+              // 3. SE FOR VETERANO (Já tem ficheiro com o username preenchido)
+              if (existingData && existingData.preferences && existingData.preferences.username) {
+                console.log("Veterano detetado! A restaurar sistema...");
+                
+                // Puxa tudo da nuvem para o telemóvel novo
+                if (existingData.tasks) localStorage.setItem('studentOs_tasks', JSON.stringify(existingData.tasks));
+                if (existingData.meals) localStorage.setItem('studentOs_meals', JSON.stringify(existingData.meals));
+                if (existingData.workouts) localStorage.setItem('studentOs_workouts', JSON.stringify(existingData.workouts));
+                if (existingData.grades) localStorage.setItem('studentOs_grades', JSON.stringify(existingData.grades));
+                if (existingData.monthlyGoals) localStorage.setItem('studentOs_monthly_goals', JSON.stringify(existingData.monthlyGoals));
+                if (existingData.workoutHistory) localStorage.setItem('studentOs_workout_history', JSON.stringify(existingData.workoutHistory));
+                if (existingData.transactions) localStorage.setItem('studentOs_transactions', JSON.stringify(existingData.transactions));
+                
+               // @ts-expect-error - Compatibilidade com estrutura antiga (schedule)
+                if (existingData.schedule) localStorage.setItem('studentOs_events', JSON.stringify(existingData.schedule));
+                
+                // @ts-expect-error - Compatibilidade com estrutura antiga (events)
+                if (existingData.events) localStorage.setItem('studentOs_events', JSON.stringify(existingData.events));
+
+                if (existingData.preferences.notifs) {
+                   localStorage.setItem('studentOs_notifs', JSON.stringify(existingData.preferences.notifs));
+                }
+
+                setIsGoogleLoading(false);
+
+                // ATIRA O UTILIZADOR DIRETO PARA O DASHBOARD (Salta os passos 3, 4 e 5!)
+                onComplete({
+                  name: existingData.preferences.username,
+                  university: existingData.preferences.university || 'Nt',
+                  course: existingData.preferences.course || '',
+                  age: existingData.preferences.age || '',
+                  weight: existingData.preferences.weight || '',
+                  height: existingData.preferences.height || '',
+                  profileImage: null
+                });
+                
+              } else {
+                // 4. SE FOR NOVO UTILIZADOR
+                console.log("Novo utilizador. A avançar para a configuração de perfil...");
+                setIsGoogleLoading(false);
+                setStep(3); // Avança normalmente para perguntar o Nome
+              }
+              
+            } catch (err) {
+              console.error("Erro ao verificar o Drive:", err);
+              // Se a net falhar a meio, assume que é novo para não prender a app
+              setIsGoogleLoading(false);
+              setStep(3);
+            }
+            
           } else {
             console.error("Erro na autenticação:", response.error);
             alert("A conexão com o Google falhou. Tenta novamente.");

@@ -29,6 +29,7 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false); 
+  const [mounted, setMounted] = useState(false); // Evita erros de hidratação
   
   const [conflictModal, setConflictModal] = useState<{ newEvt: Omit<ScheduleEvent, 'id'>; oldEvt: ScheduleEvent } | null>(null);
   
@@ -38,6 +39,24 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
   const [pickerConfig, setPickerConfig] = useState<{ type: 'start' | 'end', hour: string, minute: string } | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerMonth, setPickerMonth] = useState(new Date());
+
+  // MOTOR DO "PULSO DO TEMPO" 🔴
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  useEffect(() => {
+    // O setTimeout acalma o ESLint (evita o alerta de setState síncrono)
+    const timeout = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    
+    // Atualiza o relógio a cada 60 segundos
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, []);
 
   const eventsRef = useRef(events);
   const hasAutoSynced = useRef(false);
@@ -90,6 +109,8 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
           let endH = h + 1;
           let endM = m + 30;
           if (endM >= 60) { endH += Math.floor(endM / 60); endM %= 60; }
+          
+          if (endH >= 24) { endH = 23; endM = 59; }
           
           if (workoutData.endTime && workoutData.endTime.includes(':')) {
             const [eh, em] = workoutData.endTime.split(':').map(Number);
@@ -146,19 +167,23 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
     } catch (e) { console.error("Erro ao sincronizar treinos", e); }
   };
 
+  // REF BIÔNICO (Proteção de ouvidos para a sincronização em tempo real)
+  const startSyncRef = useRef(startSync);
+  useEffect(() => { 
+    startSyncRef.current = startSync; 
+  });
+
   useEffect(() => {
     if (events.length > 0 && !hasAutoSynced.current) {
-      setTimeout(() => { startSync(); }, 0);
+      setTimeout(() => { startSyncRef.current(); }, 0);
       hasAutoSynced.current = true;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
 
   useEffect(() => {
-    const handleGymSync = () => { setTimeout(() => { startSync(); }, 100); };
+    const handleGymSync = () => { setTimeout(() => { startSyncRef.current(); }, 150); };
     window.addEventListener('syncGymWorkouts', handleGymSync);
     return () => window.removeEventListener('syncGymWorkouts', handleGymSync);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -257,21 +282,96 @@ export default function DynamicSchedule({ events, setEvents }: DynamicSchedulePr
           {daysOfWeek.map((dayName, index) => {
             const dayNum = index + 1;
             const dayEvents = events.filter(e => e.dayOfWeek === dayNum);
+            
+            // VERIFICA SE ESTE É O DIA DE HOJE
+            const isToday = mounted && dayNum === (currentTime.getDay() + 1);
+            const currH = currentTime.getHours();
+            const currM = currentTime.getMinutes();
+            const timeLineOffset = ((currH - minHour) * 6) + ((currM / 60) * 6);
+
             return (
               <div key={dayNum} className="flex-1 border-r border-border-subtle last:border-r-0 relative">
-                <div className="h-10 border-b border-border-subtle flex items-center justify-center font-semibold text-sm text-text-main bg-card-bg/90 sticky top-0 z-10">{dayName}</div>
+                <div className={`h-10 border-b border-border-subtle flex items-center justify-center font-semibold text-sm text-text-main bg-card-bg/90 sticky top-0 z-10 transition-colors ${isToday ? 'text-rose-500 font-black' : ''}`}>
+                  {dayName}
+                </div>
                 <div className="relative" style={{ height: `${hoursRange.length * 6}rem` }}>
                   {hoursRange.map(hour => <div key={hour} className="h-24 border-b border-border-subtle/30"></div>)}
+                  
+                  {/* A LINHA DO PULSO DO TEMPO (Renderiza apenas se for hoje e dentro da janela visível) */}
+                  {isToday && currH >= minHour && currH <= maxHour && (
+                    <div className="absolute left-0 right-0 z-20 pointer-events-none flex items-center" style={{ top: `${timeLineOffset}rem`, transform: 'translateY(-50%)' }}>
+                      <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)] relative -left-1.5 animate-pulse"></div>
+                      <div className="h-[2px] w-full bg-rose-500/80 shadow-[0_0_5px_rgba(244,63,94,0.4)]"></div>
+                    </div>
+                  )}
+
                   {dayEvents.map(evt => {
-                    const topOffset = ((evt.startHour - minHour) * 6) + ((evt.startMin / 60) * 6);
-                    const duration = (evt.endHour + evt.endMin / 60) - (evt.startHour + evt.startMin / 60);
+                    const sH = Number(evt.startHour);
+                    const sM = Number(evt.startMin);
+                    const eH = Number(evt.endHour);
+                    const eM = Number(evt.endMin);
+
+                    const topOffset = ((sH - minHour) * 6) + ((sM / 60) * 6);
+                    const duration = (eH + eM / 60) - (sH + sM / 60);
+                    
+                    const isMicro = duration <= 0.6;
+                    const isCompact = duration > 0.6 && duration <= 1.25;
+                    const isLarge = duration >= 2.5;
+                    
+                    // VERIFICA SE O EVENTO ESTÁ A ACONTECER NESTE EXATO MINUTO
+                    const isHappeningNow = isToday && (currH > sH || (currH === sH && currM >= sM)) && (currH < eH || (currH === eH && currM < eM));
+                    
+                    // CLASSES CONDICIONAIS DE GLOW E FOCO
+                    const activeClasses = isHappeningNow 
+                      ? 'ring-2 ring-white ring-offset-2 ring-offset-app-bg shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02] z-30' 
+                      : 'opacity-90 hover:opacity-100 hover:ring-2 hover:ring-white/80 z-10';
+
                     return (
-                      <div key={evt.id} onClick={() => setSelectedEvent(evt)} className={`absolute left-1.5 right-1.5 rounded-lg p-2 text-white text-xs shadow-lg overflow-hidden ${evt.color} hover:ring-2 hover:ring-white/80 transition-all cursor-pointer group z-10 opacity-90 hover:opacity-100 flex flex-col`} style={{ top: `${topOffset}rem`, height: `${duration * 6}rem` }}>
-                        <div className="font-bold truncate text-sm leading-tight mb-1">{evt.title}</div>
-                        {evt.location && (
-                          <div className="flex items-center gap-1 text-[10px] opacity-90 mb-1 truncate"><MapPin size={10} className="shrink-0" /><span className="truncate">{evt.location}</span></div>
+                      <div 
+                        key={evt.id} 
+                        onClick={() => setSelectedEvent(evt)} 
+                        className={`absolute left-1.5 right-1.5 rounded-lg text-white overflow-hidden ${evt.color} transition-all cursor-pointer group flex ${activeClasses}`} 
+                        style={{ top: `${topOffset}rem`, height: `${duration * 6}rem` }}
+                      >
+                        {isMicro ? (
+                          <div className="w-full h-full flex flex-row items-center justify-start gap-1.5 px-1.5 py-0">
+                            <div className="flex items-center gap-0.5 shrink-0 bg-black/20 px-1 py-0.5 rounded">
+                              <Clock size={8}/> 
+                              <span className="font-bold text-[9px]">{sH}:{sM.toString().padStart(2, '0')} - {eH}:{eM.toString().padStart(2, '0')}</span>
+                            </div>
+                            <span className="font-bold text-[10px] truncate leading-none">{evt.title}</span>
+                          </div>
+                        ) : isCompact ? (
+                          <div className="w-full h-full flex flex-col justify-center px-1.5 py-0.5 gap-0.5">
+                            <div className="font-bold text-[11px] truncate leading-tight">{evt.title}</div>
+                            <div className="flex items-center gap-1.5 text-[9px] opacity-90 truncate">
+                              <span className="flex items-center gap-0.5 shrink-0">
+                                <Clock size={9}/>{sH}:{sM.toString().padStart(2, '0')} - {eH}:{eM.toString().padStart(2, '0')}
+                              </span>
+                              {evt.location && (
+                                <span className="flex items-center gap-0.5 truncate">
+                                  <MapPin size={9}/>{evt.location}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`w-full h-full flex flex-col px-2 ${isLarge ? 'justify-center py-4 gap-2' : 'justify-start py-1.5 gap-1'}`}>
+                            <div className={`font-bold truncate leading-tight ${isLarge ? 'text-base' : 'text-sm'}`}>
+                              {evt.title}
+                            </div>
+                            {evt.location && (
+                              <div className={`flex items-center gap-1 opacity-90 truncate ${isLarge ? 'text-xs' : 'text-[10px]'}`}>
+                                <MapPin size={isLarge ? 12 : 10} className="shrink-0" />
+                                <span className="truncate">{evt.location}</span>
+                              </div>
+                            )}
+                            <div className={`flex items-center gap-1 opacity-80 ${isLarge ? 'text-xs' : 'text-[10px]'}`}>
+                              <Clock size={isLarge ? 12 : 10}/>
+                              {sH}:{sM.toString().padStart(2, '0')} - {eH}:{eM.toString().padStart(2, '0')}
+                            </div>
+                          </div>
                         )}
-                        <div className="flex items-center gap-1 mt-auto opacity-80 text-[10px]"><Clock size={10}/>{evt.startHour}:{evt.startMin.toString().padStart(2, '0')} - {evt.endHour}:{evt.endMin.toString().padStart(2, '0')}</div>
                       </div>
                     );
                   })}

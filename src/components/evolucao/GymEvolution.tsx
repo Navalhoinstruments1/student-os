@@ -282,8 +282,9 @@ export default function GymEvolution() {
             </div>
 
             <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 flex-1 min-h-75">
-                <div className="flex-1 w-full -ml-4 min-h-62.5">
-                    <ResponsiveContainer width="100%" height="100%">
+                {/* AQUI ESTÁ A MAGIA: min-w-0, h-100 e min-h-[350px] */}
+                <div className="flex-1 w-full min-w-0 -ml-4 h-100 min-h-[350px]">
+                    <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
                         <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barSize={timeView === 'ano' ? 32 : timeView === 'mes' ? 8 : 24}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.4} />
                             <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} dy={10} />
